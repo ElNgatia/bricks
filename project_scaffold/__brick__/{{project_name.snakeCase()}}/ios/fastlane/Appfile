@@ -1,0 +1,4 @@
+app_identifier ENV["APP_IDENTIFIER"] || "{{org_name}}.{{project_name.camelCase()}}"
+
+# Team ID from https://developer.apple.com/account -> Membership details.
+team_id ENV["APPLE_TEAM_ID"]

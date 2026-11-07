@@ -47,3 +47,14 @@ ios/Runner/GoogleService-Info.plist
 *.keystore
 *.jks
 
+
+# Release signing and publishing
+android/key.properties
+ios/ExportOptions.plist
+ios/fastlane/report.xml
+ios/fastlane/Preview.html
+ios/fastlane/test_output
+ios/fastlane/metadata/review_information/
+*.p8
+*.mobileprovision
+*.p12

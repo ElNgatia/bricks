@@ -4,8 +4,8 @@ import 'dart:async';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-{{/use_firebase}}
 import 'package:flutter/foundation.dart';
+{{/use_firebase}}
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:{{project_name.snakeCase()}}/app/core/utils/provider_retry.dart';
@@ -87,7 +87,6 @@ bool get _isFirebasePlatform {
   return defaultTargetPlatform == TargetPlatform.android ||
       defaultTargetPlatform == TargetPlatform.iOS;
 }
-{{/use_firebase}}
 
 Future<void> _runStartupTask(Future<void> Function() task) async {
   try {
@@ -97,4 +96,5 @@ Future<void> _runStartupTask(Future<void> Function() task) async {
     debugPrintStack(stackTrace: stackTrace);
   }
 }
+{{/use_firebase}}
 

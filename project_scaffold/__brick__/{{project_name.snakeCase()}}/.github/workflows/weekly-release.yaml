@@ -1,0 +1,147 @@
+{{=<% %>=}}
+name: Weekly Release
+
+on:
+  schedule:
+    - cron: '7 15 * * 6'
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: 'Version bump (auto reads the commit types since the last release)'
+        required: false
+        default: auto
+        type: choice
+        options:
+          - auto
+          - patch
+          - minor
+          - major
+      force:
+        description: 'Release even when nothing has merged since the last release'
+        required: false
+        default: false
+        type: boolean
+      dry_run:
+        description: 'Only report what would be released'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+  actions: write
+  pull-requests: read
+
+concurrency:
+  group: weekly-release
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    name: Work out the release
+    outputs:
+      should_release: ${{ steps.resolve.outputs.should_release }}
+      previous_tag: ${{ steps.resolve.outputs.previous_tag }}
+      version: ${{ steps.resolve.outputs.version }}
+      tag: ${{ steps.resolve.outputs.tag }}
+      build_number: ${{ steps.resolve.outputs.build_number }}
+      bump: ${{ steps.resolve.outputs.bump }}
+      commit_count: ${{ steps.resolve.outputs.commit_count }}
+      sha: ${{ steps.sha.outputs.sha }}
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Pin the commit being released
+        id: sha
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Block while the last version bump is unmerged
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          open="$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --base main \
+            --search 'chore: bump version in:title' --json number,title \
+            --jq '.[] | "#\(.number) \(.title)"')"
+          if [ -n "$open" ]; then
+            echo "::error::Merge the previous version bump first, otherwise the build number repeats and the stores reject it: $open"
+            exit 1
+          fi
+
+      - name: Resolve version and build number
+        id: resolve
+        env:
+          BUMP_INPUT: ${{ github.event.inputs.bump || 'auto' }}
+          FORCE: ${{ github.event.inputs.force || 'false' }}
+        run: bash .github/workflows/scripts/resolve_weekly_release.sh
+
+      - name: Summary
+        env:
+          SHOULD_RELEASE: ${{ steps.resolve.outputs.should_release }}
+          DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+        run: |
+          {
+            echo "### Weekly release"
+            echo ""
+            echo "| | |"
+            echo "|---|---|"
+            echo "| Previous | ${{ steps.resolve.outputs.previous_tag }} |"
+            echo "| Next | ${{ steps.resolve.outputs.tag }}+${{ steps.resolve.outputs.build_number }} (${{ steps.resolve.outputs.bump }}) |"
+            echo "| Commits since | ${{ steps.resolve.outputs.commit_count }} |"
+            echo "| Commit | ${{ steps.sha.outputs.sha }} |"
+            echo "| Release | $SHOULD_RELEASE |"
+            echo "| Dry run | $DRY_RUN |"
+            if [ "$SHOULD_RELEASE" != "true" ]; then
+              echo ""
+              echo "Nothing merged since the last release, so this week is skipped."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  release:
+    needs: prepare
+    if: needs.prepare.outputs.should_release == 'true' && github.event.inputs.dry_run != 'true'
+    runs-on: ubuntu-latest
+    name: Publish to both stores
+    env:
+      GH_TOKEN: ${{ secrets.RELEASE_PAT }}
+      TAG: ${{ needs.prepare.outputs.tag }}
+      VERSION: ${{ needs.prepare.outputs.version }}
+      BUILD_NUMBER: ${{ needs.prepare.outputs.build_number }}
+      RELEASE_SHA: ${{ needs.prepare.outputs.sha }}
+    steps:
+      - name: Require the release token
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::RELEASE_PAT is not set. A release created with the default token does not trigger the Play Store workflow."
+            exit 1
+          fi
+
+      - name: Create the GitHub release (starts the Play Store publish)
+        run: |
+          gh release create "$TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$RELEASE_SHA" \
+            --title "$TAG" \
+            --generate-notes
+
+      - name: Start the App Store publish
+        run: |
+          gh workflow run appstore-publish.yaml \
+            --repo "$GITHUB_REPOSITORY" \
+            --ref "$TAG" \
+            -f app_version="$VERSION" \
+            -f build_number="$BUILD_NUMBER" \
+            -f publish_listing=true
+
+      - name: Summary
+        run: |
+          {
+            echo "### Released $TAG+$BUILD_NUMBER"
+            echo ""
+            echo "- Play Store: started by the published release"
+            echo "- App Store: dispatched, submitted for review once processing finishes"
+          } >> "$GITHUB_STEP_SUMMARY"

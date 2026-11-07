@@ -1,0 +1,25 @@
+name: Conventional Release Labels
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  pull-requests: write
+  statuses: write
+
+jobs:
+  conventional-label:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: bcoe/conventional-release-labels@v1
+        with:
+          ignored_types: |
+            [
+              "style",
+              "refactor",
+              "test",
+              "ci",
+              "chore"
+            ]

@@ -46,6 +46,11 @@ Future<void> run(HookContext context) async {
         workingDirectory: projectDir.path,
       );
     }
+    await Process.run(
+      'dart',
+      ['run', 'bin/configure_release.dart'],
+      workingDirectory: projectDir.path,
+    );
     context.logger.info('Running slang code generation...');
     await Process.run('dart', ['run', 'slang'],
         workingDirectory: projectDir.path);

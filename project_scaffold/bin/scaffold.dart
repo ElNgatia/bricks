@@ -7,28 +7,55 @@ void main(List<String> args) async {
   stdout.writeln('     Flutter Project Scaffolder (Dart CLI)              ');
   stdout.writeln('========================================================\n');
 
-  final projectName = _prompt('Project name (snake_case)', defaultValue: 'my_app');
-  final projectDescription = _prompt('Project description', defaultValue: 'A new Flutter application.');
-  final orgName = _prompt('Organization ID (reverse domain)', defaultValue: 'com.example');
-  final apiBaseUrl = _prompt('API Base URL', defaultValue: 'https://api.example.com/api/v1');
-  final featuresStr = _prompt('Features (comma-separated, snake_case)', defaultValue: 'auth,home');
+  final projectName = _prompt(
+    'Project name (snake_case)',
+    defaultValue: 'my_app',
+  );
+  final projectDescription = _prompt(
+    'Project description',
+    defaultValue: 'A new Flutter application.',
+  );
+  final orgName = _prompt(
+    'Organization ID (reverse domain)',
+    defaultValue: 'com.example',
+  );
+  final apiBaseUrl = _prompt(
+    'API Base URL',
+    defaultValue: 'https://api.example.com/api/v1',
+  );
+  final featuresStr = _prompt(
+    'Features (comma-separated, snake_case)',
+    defaultValue: 'auth,home',
+  );
   final useFirebaseStr = _prompt('Include Firebase? (y/n)', defaultValue: 'y');
-  final useBiometricsStr = _prompt('Include Biometrics? (y/n)', defaultValue: 'y');
-  final flutterVersion = _prompt('Flutter version (.fvmrc)', defaultValue: '3.44.8');
+  final useBiometricsStr = _prompt(
+    'Include Biometrics? (y/n)',
+    defaultValue: 'y',
+  );
+  final flutterVersion = _prompt(
+    'Flutter version (.fvmrc)',
+    defaultValue: '3.44.8',
+  );
 
   final useFirebase = useFirebaseStr.toLowerCase().startsWith('y');
   final useBiometrics = useBiometricsStr.toLowerCase().startsWith('y');
 
   final scriptDir = File(Platform.script.toFilePath()).parent.parent;
-  final templateRoot = Directory('${scriptDir.path}/__brick__/{{project_name.snakeCase()}}');
+  final templateRoot = Directory(
+    '${scriptDir.path}/__brick__/{{project_name.snakeCase()}}',
+  );
   final targetDir = Directory(projectName);
 
   if (!templateRoot.existsSync()) {
-    stderr.writeln('Error: Template directory not found at: ${templateRoot.path}');
+    stderr.writeln(
+      'Error: Template directory not found at: ${templateRoot.path}',
+    );
     exit(1);
   }
 
-  stdout.writeln('\nGenerating project "$projectName" in ${targetDir.absolute.path}...');
+  stdout.writeln(
+    '\nGenerating project "$projectName" in ${targetDir.absolute.path}...',
+  );
   targetDir.createSync(recursive: true);
 
   final variables = <String, dynamic>{
@@ -66,8 +93,14 @@ void main(List<String> args) async {
       .where((name) => name.isNotEmpty && name != 'auth' && name != 'home')
       .toSet();
   for (final feature in features) {
-    await Process.run('dart', ['bin/add_feature.dart', feature], workingDirectory: targetDir.path);
+    await Process.run('dart', [
+      'bin/add_feature.dart',
+      feature,
+    ], workingDirectory: targetDir.path);
   }
+  await Process.run('dart', [
+    'bin/configure_release.dart',
+  ], workingDirectory: targetDir.path);
 
   stdout.writeln('\n========================================================');
   stdout.writeln('Scaffolding complete! Next steps:');
@@ -109,35 +142,86 @@ void _copyAndProcess(
 }
 
 String _toSnakeCase(String str) {
-  return str.replaceAllMapped(RegExp(r'([A-Z])'), (m) => '_${m[1]?.toLowerCase()}').trim().replaceAll(RegExp(r'^_+'), '');
+  return str
+      .replaceAllMapped(RegExp(r'([A-Z])'), (m) => '_${m[1]?.toLowerCase()}')
+      .trim()
+      .replaceAll(RegExp(r'^_+'), '');
 }
 
 String _toPascalCase(String str) {
-  return str.split('_').map((word) => word.isEmpty ? '' : word[0].toUpperCase() + word.substring(1)).join();
+  return str
+      .split('_')
+      .map(
+        (word) => word.isEmpty ? '' : word[0].toUpperCase() + word.substring(1),
+      )
+      .join();
 }
 
 String _toTitleCase(String str) {
-  return str.split('_').map((word) => word.isEmpty ? '' : word[0].toUpperCase() + word.substring(1)).join(' ');
+  return str
+      .split('_')
+      .map(
+        (word) => word.isEmpty ? '' : word[0].toUpperCase() + word.substring(1),
+      )
+      .join(' ');
 }
 
 String _processMustache(String template, Map<String, dynamic> vars) {
-  var result = template;
+  // Files holding GitHub Actions `${{ }}` expressions switch mason's delimiters.
+  var result = template.startsWith('{{=<% %>=}}\n')
+      ? template.substring('{{=<% %>=}}\n'.length)
+      : template;
   final projectName = vars['project_name'] as String;
 
   // Replacements
-  result = result.replaceAll('{{project_name.snakeCase()}}', _toSnakeCase(projectName));
-  result = result.replaceAll('{{project_name.pascalCase()}}', _toPascalCase(projectName));
-  result = result.replaceAll('{{project_name.titleCase()}}', _toTitleCase(projectName));
+  result = result.replaceAll(
+    '{{project_name.snakeCase()}}',
+    _toSnakeCase(projectName),
+  );
+  result = result.replaceAll(
+    '{{project_name.pascalCase()}}',
+    _toPascalCase(projectName),
+  );
+  final pascalName = _toPascalCase(projectName);
+  result = result.replaceAll(
+    '{{project_name.camelCase()}}',
+    pascalName.isEmpty
+        ? ''
+        : pascalName[0].toLowerCase() + pascalName.substring(1),
+  );
+  result = result.replaceAll(
+    '{{project_name.titleCase()}}',
+    _toTitleCase(projectName),
+  );
   result = result.replaceAll('{{project_name}}', projectName);
-  result = result.replaceAll('{{project_description}}', vars['project_description']?.toString() ?? '');
-  result = result.replaceAll('{{org_name}}', vars['org_name']?.toString() ?? '');
-  result = result.replaceAll('{{api_base_url}}', vars['api_base_url']?.toString() ?? '');
-  result = result.replaceAll('{{flutter_version}}', vars['flutter_version']?.toString() ?? '3.44.8');
-  result = result.replaceAll('{{sdk_constraint}}', vars['sdk_constraint']?.toString() ?? '^3.12.0');
+  result = result.replaceAll(
+    '{{project_description}}',
+    vars['project_description']?.toString() ?? '',
+  );
+  result = result.replaceAll(
+    '{{org_name}}',
+    vars['org_name']?.toString() ?? '',
+  );
+  result = result.replaceAll(
+    '{{api_base_url}}',
+    vars['api_base_url']?.toString() ?? '',
+  );
+  result = result.replaceAll(
+    '{{flutter_version}}',
+    vars['flutter_version']?.toString() ?? '3.44.8',
+  );
+  result = result.replaceAll(
+    '{{sdk_constraint}}',
+    vars['sdk_constraint']?.toString() ?? '^3.12.0',
+  );
 
   // Conditionals
   result = _handleSection(result, 'use_firebase', vars['use_firebase'] == true);
-  result = _handleSection(result, 'use_biometrics', vars['use_biometrics'] == true);
+  result = _handleSection(
+    result,
+    'use_biometrics',
+    vars['use_biometrics'] == true,
+  );
 
   return result;
 }
@@ -152,4 +236,3 @@ String _handleSection(String content, String sectionName, bool condition) {
     return condition ? match.group(1) ?? '' : '';
   });
 }
-

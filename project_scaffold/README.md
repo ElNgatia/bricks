@@ -10,6 +10,7 @@ This scaffold standardizes:
 - **Internationalization (i18n)**: [Slang](https://pub.dev/packages/slang) with **dynamic runtime terminology overrides** (multi-tenant organisation terminology support)
 - **Local Persistence**: [Hive Community Edition](https://pub.dev/packages/hive_ce) with AES encryption via `flutter_secure_storage`
 - **Modern Theme System**: Material 3 with custom dual `ThemeExtension` (light and dark mode palette & typography)
+- **Store Publishing**: GitHub Actions for CI, weekly versioned releases, Play Store and App Store publishing, with fastlane lanes for iOS
 
 ---
 
@@ -17,7 +18,14 @@ This scaffold standardizes:
 
 ```text
 <project_name>/
-├── bin/add_feature.dart            # Feature generator (see below)
+├── .github/
+│   ├── release.yaml                # Release notes categories
+│   └── workflows/                  # CI, weekly release, Play Store and App Store publishing (+ scripts/)
+├── PUBLISHING.md                   # Release runbook: secrets, first release, signing
+├── bin/
+│   ├── add_feature.dart            # Feature generator (see below)
+│   └── configure_release.dart      # Android release signing + iOS export compliance
+├── ios/fastlane/                   # App Store lanes (certs, beta, metadata, submit_review, release)
 ├── analysis_options.yaml           # Strict Flutter linter with trailing commas preserved
 ├── slang.yaml                      # Slang i18n configuration (namespaces + overrides enabled)
 ├── .fvmrc                          # Flutter Version Manager pinned version
@@ -164,6 +172,19 @@ In multi-tenant systems, organisations often rename domain terms (e.g., "Custome
   Each key under `terms` maps to a translation path in `terminologyPaths` (`lib/app/i18n/terminology.dart`); unknown keys are ignored.
 - `TerminologyController` caches them in Hive (`terminologyBox`).
 - Slang's `LocaleSettings.overrideTranslationsFromMapSync(...)` replaces matching keys in memory at runtime without app restart or hardcoded forks.
+
+---
+
+## 📦 Publishing
+
+Generated projects ship the release pipeline:
+
+- `ci.yml` analyzes and tests every push and PR.
+- `weekly-release.yaml` picks the next version from conventional commits since the last `v*` tag, creates the GitHub release and dispatches the App Store publish.
+- `publish-playstore.yml` runs on the published release: builds the AAB, uploads it to the Play Store and opens a version bump PR.
+- `appstore-publish.yaml` builds and signs the IPA, uploads it to TestFlight and can submit it for review through fastlane.
+
+The workflows read the Flutter version from `.fvmrc` and the app ids from the native projects, so nothing in them needs editing per app. The post-generate hook runs `bin/configure_release.dart`, which adds the release signing config to `android/app/build.gradle.kts` and declares export compliance in `ios/Runner/Info.plist`. The secrets each workflow needs and the first-release checklist are in the generated `PUBLISHING.md`.
 
 ---
 
