@@ -1,0 +1,9 @@
+{
+  "title": "Home",
+  "welcome": "Welcome, {name}!",
+  "overview": "Overview",
+  "quickActions": "Quick Actions",
+  "recentActivity": "Recent Activity",
+  "noActivity": "No recent activity to display."
+}
+

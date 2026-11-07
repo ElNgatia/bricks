@@ -1,0 +1,71 @@
+name: project_scaffold
+description: >
+  Scaffold a Flutter project with a production-ready architecture:
+  feature-first clean architecture, Riverpod state management,
+  Dio networking, Slang i18n with runtime terminology overrides,
+  GoRouter navigation, Hive local storage, and Firebase integration.
+version: 0.1.0+1
+environment:
+  mason: ">=0.1.0 <0.2.0"
+
+vars:
+  project_name:
+    type: string
+    description: Snake-case project name (e.g. my_app)
+    prompt: What is the project name? (snake_case)
+
+  project_description:
+    type: string
+    description: A short description of the project
+    default: "A new Flutter project."
+    prompt: Project description?
+
+  org_name:
+    type: string
+    description: Organisation reverse-domain prefix (e.g. com.example)
+    default: com.example
+    prompt: Organisation domain (reverse-domain, e.g. com.example)?
+
+  api_base_url:
+    type: string
+    description: Base URL for the REST API
+    default: "https://api.example.com/api/v1"
+    prompt: API base URL?
+
+  # ---------- workflow / domain features ----------
+  features:
+    type: list
+    description: >
+      Comma-separated list of domain features to scaffold (snake_case).
+      Each gets its own data/domain/i18n/presentation subtree.
+    default:
+      - auth
+      - home
+    prompt: >
+      Features to scaffold (comma-separated, snake_case, e.g. auth,home,orders,profile)?
+
+  # ---------- optional toggles ----------
+  use_firebase:
+    type: boolean
+    description: Include Firebase (Core, Crashlytics, Messaging) setup
+    default: true
+    prompt: Include Firebase integration?
+
+  use_biometrics:
+    type: boolean
+    description: Include local_auth biometric lock
+    default: true
+    prompt: Include biometric authentication?
+
+  flutter_version:
+    type: string
+    description: Flutter version for .fvmrc
+    default: "3.44.8"
+    prompt: Flutter version?
+
+  sdk_constraint:
+    type: string
+    description: Dart SDK constraint
+    default: "^3.12.0"
+    prompt: Dart SDK constraint?
+

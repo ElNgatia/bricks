@@ -1,0 +1,26 @@
+{
+  "signIn": "Sign In",
+  "signOut": "Sign Out",
+  "signOutConfirm": "Are you sure you want to sign out?",
+  "backToSignIn": "Back to Sign In",
+  "fields": {
+    "email": "Email",
+    "emailHint": "you@company.com",
+    "password": "Password",
+    "newPassword": "New Password",
+    "confirmNewPassword": "Confirm New Password",
+    "currentPassword": "Current Password"
+  },
+  "validation": {
+    "emailRequired": "Email is required",
+    "emailInvalid": "Enter a valid email",
+    "passwordRequired": "Password is required"
+  },
+  "login": {
+    "welcomeBack": "Welcome Back",
+    "subtitle": "Manage your operations from anywhere.",
+    "rememberMe": "Remember me",
+    "forgotPassword": "Forgot Password?"
+  }
+}
+

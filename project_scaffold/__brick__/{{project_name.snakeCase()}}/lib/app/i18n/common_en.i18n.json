@@ -1,0 +1,98 @@
+{
+  "terms": {
+    "user": {
+      "singular": "User",
+      "plural": "Users"
+    },
+    "organization": {
+      "singular": "Organization",
+      "plural": "Organizations"
+    },
+    "unit": {
+      "singular": "Department",
+      "plural": "Departments"
+    },
+    "item": {
+      "singular": "Item",
+      "plural": "Items"
+    }
+  },
+  "errors": {
+    "noInternet": "No internet connection. Please check your network and try again.",
+    "generic": "Something went wrong. Please try again.",
+    "invalidResponse": "Invalid response from server",
+    "occurred": "An error occurred",
+    "offlineTitle": "You're Offline",
+    "unauthorized": "Session expired. Please log in again."
+  },
+  "actions": {
+    "cancel": "Cancel",
+    "viewAll": "View all",
+    "saveChanges": "Save Changes",
+    "retry": "Retry",
+    "clear": "Clear",
+    "tryAgain": "Try again",
+    "refresh": "Refresh",
+    "clearFilters": "Clear filters",
+    "approve": "Approve",
+    "reject": "Reject",
+    "edit": "Edit",
+    "delete": "Delete",
+    "done": "Done",
+    "submit": "Submit",
+    "send": "Send",
+    "back": "Back",
+    "close": "Close",
+    "remove": "Remove",
+    "reset": "Reset",
+    "applyFilters": "Apply filters",
+    "continueAction": "Continue",
+    "skipForNow": "Skip for now",
+    "markAsRead": "Mark as Read",
+    "goBack": "Go Back",
+    "share": "Share"
+  },
+  "validation": {
+    "required": "Required",
+    "invalidEmail": "Please enter a valid email",
+    "minLength": "Must be at least {count} characters"
+  },
+  "notProvided": "Not provided",
+  "fields": {
+    "email": "Email",
+    "password": "Password",
+    "name": "Name",
+    "phone": "Phone",
+    "description": "Description",
+    "category": "Category",
+    "reason": "Reason",
+    "date": "Date",
+    "amount": "Amount",
+    "status": "Status",
+    "notes": "Notes",
+    "attachments": "Attachments",
+    "title": "Title",
+    "optional": "Optional"
+  },
+  "status": {
+    "pending": "Pending",
+    "completed": "Completed",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "cancelled": "Cancelled",
+    "draft": "Draft",
+    "active": "Active",
+    "inProgress": "In Progress"
+  },
+  "filters": {
+    "all": "All",
+    "status": "Status",
+    "sortBy": "Sort by",
+    "newest": "Newest"
+  },
+  "loading": "Loading...",
+  "you": "You",
+  "justNow": "Just now",
+  "notSpecified": "Not specified"
+}
+
